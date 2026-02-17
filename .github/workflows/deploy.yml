@@ -35,3 +35,10 @@ jobs:
         file: ./TestingAlphaDeploy.Web/Dockerfile
         push: true
         tags: ghcr.io/${{ github.repository }}/web:latest
+
+    - name: Deploy to Portainer
+      run: |
+        curl -X PUT "${{ secrets.PORTAINER_ENDPOINT }}/api/stacks/${{ secrets.STACK_ID }}?endpointId=1" \
+          -H "X-API-Key: ${{ secrets.PORTAINER_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d '{"PullImage": true}'
