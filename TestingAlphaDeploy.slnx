@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="TestingAlphaDeploy.ApiService/TestingAlphaDeploy.ApiService.csproj" />
+  <Project Path="TestingAlphaDeploy.AppHost/TestingAlphaDeploy.AppHost.csproj" />
+  <Project Path="TestingAlphaDeploy.ServiceDefaults/TestingAlphaDeploy.ServiceDefaults.csproj" />
+  <Project Path="TestingAlphaDeploy.Web/TestingAlphaDeploy.Web.csproj" />
+</Solution>
