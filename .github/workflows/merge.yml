@@ -14,11 +14,27 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Configure Git
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
 
     - name: Merge master to publish
-      uses: devmasx/merge-branch@1.4.0
-      with:
-        type: now
-        from_branch: master
-        target_branch: publish
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git checkout publish
+        if git merge master --no-edit; then
+          echo "Merge successful"
+          git push origin publish
+        else
+          echo "Merge failed due to conflicts"
+          git merge --abort
+          # Create PR
+          git checkout -b merge-master-to-publish
+          git push origin merge-master-to-publish
+          # Use GitHub CLI to create PR
+          gh pr create --title "Merge master to publish" --body "Automatic merge failed due to conflicts. Please resolve." --base publish --head merge-master-to-publish
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
