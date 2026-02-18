@@ -23,6 +23,31 @@
     </ul>
 </div>
 
+<hr class="my-5" />
+
+<div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+        <h5>📊 Deployment Statistics</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <h6>Total Merges</h6>
+                <p class="display-6">@totalMerges</p>
+            </div>
+            <div class="col-md-4">
+                <h6>Successful Deploys</h6>
+                <p class="display-6">@successfulDeploys</p>
+            </div>
+            <div class="col-md-4">
+                <h6>Server Status</h6>
+                <p class="display-6">🟢 Online</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 @code {
-    
+    private int totalMerges = 5;
+    private int successfulDeploys = 4;
 }
