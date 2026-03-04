@@ -1,4 +1,5 @@
 ﻿@page "/"
+@inject IConfiguration Configuration
 
 <PageTitle>TestingAlphaDeploy - Production Ready v2</PageTitle>
 
@@ -56,8 +57,72 @@
     <p><strong>Last Updated:</strong> @DateTime.Now.ToString("dd.MM.yyyy HH:mm")</p>
 </div>
 
+<div class="card mt-4 border-secondary">
+    <div class="card-header bg-dark text-white">
+        <h5>🔐 Environment Secrets Status</h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Variable</th>
+                    <th>Status</th>
+                    <th>Value Preview</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var secret in secrets)
+                {
+                    <tr>
+                        <td><code>@secret.Key</code></td>
+                        <td>
+                            @if (secret.IsSet)
+                            {
+                                <span class="badge bg-success">✅ SET</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">❌ NOT SET</span>
+                            }
+                        </td>
+                        <td><small class="text-muted">@secret.Preview</small></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
 @code {
     private int totalMerges = 5;
     private int successfulDeploys = 4;
+
+    private record SecretStatus(string Key, bool IsSet, string Preview);
+
+    private List<SecretStatus> secrets = [];
+
+    protected override void OnInitialized()
+    {
+        var keysToCheck = new[]
+        {
+            "APP_SECRET",
+            "API_KEY",
+            "DB_CONNECTION_STRING",
+            "PORTAINER_TOKEN",
+            "DEPLOY_ENV"
+        };
+
+        secrets = keysToCheck.Select(key =>
+        {
+            var value = Configuration[key] ?? Environment.GetEnvironmentVariable(key);
+            var isSet = !string.IsNullOrEmpty(value);
+            var preview = isSet
+                ? value!.Length <= 4
+                    ? "****"
+                    : value[..2] + new string('*', Math.Min(value.Length - 2, 6)) + "..."
+                : "—";
+            return new SecretStatus(key, isSet, preview);
+        }).ToList();
+    }
 }
 
