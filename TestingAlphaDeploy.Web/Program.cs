@@ -12,6 +12,8 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddOutputCache();
 
+builder.Services.AddSingleton<RedisService>();
+
 builder.Services.AddHttpClient<WeatherApiClient>(client =>
 {
     // Direct IP address for Docker deployment

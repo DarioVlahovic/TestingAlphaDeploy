@@ -1,5 +1,6 @@
 ﻿@page "/"
 @inject IConfiguration Configuration
+@inject RedisService Redis
 
 <PageTitle>TestingAlphaDeploy - Production Ready v2</PageTitle>
 <PageTitle>TestingAlphaDeploy - Publish Branch</PageTitle>
@@ -105,23 +106,93 @@
     </div>
 </div>
 
+<div class="card mt-4 @(redisConnected ? "border-success" : "border-danger")">
+    <div class="card-header @(redisConnected ? "bg-success" : "bg-danger") text-white">
+        <h5>🗄️ Redis Status</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <h6>Connection</h6>
+                <p class="fs-5">
+                    @if (redisConnected)
+                    {
+                        <span class="badge bg-success">🟢 Connected</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">🔴 Disconnected</span>
+                    }
+                </p>
+            </div>
+            <div class="col-md-3">
+                <h6>Ping</h6>
+                <p class="fs-5">@(redisPing.HasValue ? $"{redisPing.Value.TotalMilliseconds:F1} ms" : "N/A")</p>
+            </div>
+            <div class="col-md-3">
+                <h6>Test Write/Read</h6>
+                <p class="fs-5">
+                    @if (redisTestPassed)
+                    {
+                        <span class="badge bg-success">✅ PASS</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">❌ FAIL</span>
+                    }
+                </p>
+            </div>
+            <div class="col-md-3">
+                <h6>Info</h6>
+                <p class="fs-6 text-muted">@redisInfo</p>
+            </div>
+        </div>
+        @if (redisTestValue is not null)
+        {
+            <div class="alert alert-light mt-2 mb-0">
+                <small><strong>Test key:</strong> <code>alpha_deploy_test</code> = <code>@redisTestValue</code></small>
+            </div>
+        }
+    </div>
+</div>
+
 @code {
     private int totalMerges = 5;
     private int successfulDeploys = 4;
 
-    private record SecretStatus(string Key, bool IsSet, string Preview);
+    private bool redisConnected;
+    private TimeSpan? redisPing;
+    private bool redisTestPassed;
+    private string redisInfo = "";
+    private string? redisTestValue;
 
+    private record SecretStatus(string Key, bool IsSet, string Preview);
     private List<SecretStatus> secrets = [];
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        // Redis checks
+        redisConnected = await Redis.IsConnectedAsync();
+        redisPing = await Redis.PingAsync();
+        redisInfo = Redis.GetConnectionInfo();
+
+        if (redisConnected)
+        {
+            var testVal = $"working-{DateTime.UtcNow:HHmmss}";
+            await Redis.SetValueAsync("alpha_deploy_test", testVal, TimeSpan.FromMinutes(5));
+            redisTestValue = await Redis.GetValueAsync("alpha_deploy_test");
+            redisTestPassed = redisTestValue == testVal;
+        }
+
+        // Env secrets check
         var keysToCheck = new[]
         {
             "APP_SECRET",
             "API_KEY",
             "DB_CONNECTION_STRING",
             "PORTAINER_TOKEN",
-            "DEPLOY_ENV"
+            "DEPLOY_ENV",
+            "REDIS_CONNECTION"
         };
 
         secrets = keysToCheck.Select(key =>
