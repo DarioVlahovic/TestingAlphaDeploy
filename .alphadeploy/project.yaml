@@ -1,0 +1,40 @@
+name: PORTAINERtestALPHA
+description: |-
+    Created by AI Deploy Wizard.
+    Detected: C# / ASP.NET 10.0
+    Branches: master → publish
+gitRepoPath: C:\Users\dario\source\repos\TestingAlphaDeploy
+deploymentType: docker
+git:
+    sourceBranch: master
+    targetBranch: publish
+virtualMachines:
+    - name: vmc
+      host: 192.168.21.52
+      username: alpha
+      password: Morija#091
+      port: 22
+      remotePath: /home/alpha
+      portainerUrl: http://192.168.21.52:9000
+      portainerUsername: admin
+      portainerPassword: Morija#091
+services:
+    - name: TestingAlphaDeploy.ApiService
+      description: C# .NET Web
+      dockerfilePath: TestingAlphaDeploy.ApiService/Dockerfile
+      imageName: testingalphadeploy-apiservice
+      imageTag: latest
+      containerName: testingalphadeploy-apiservice
+      isEnabled: true
+      tarPrefix: testingalphadeploy-apiservice-v
+      context: .
+    - name: TestingAlphaDeploy.Web
+      description: C# .NET Web
+      dockerfilePath: TestingAlphaDeploy.Web/Dockerfile
+      imageName: testingalphadeploy-web
+      imageTag: latest
+      containerName: testingalphadeploy-web
+      isEnabled: true
+      order: 1
+      tarPrefix: testingalphadeploy-web-v
+      context: .
